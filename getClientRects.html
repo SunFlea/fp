@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>getClientRects fingerprint</title>
+</head>
+<body>
+	<h3>Result Raw</h3>
+	<span id="result"></span>
+	<br>
+
+	<h3>Result Hash</h3>
+	<span id="result_hash"></span>
+	<br>
+
+	<h3>Context</h3>
+	<span id="context"></span>
+	<br>
+
+	<h3>Screen Size</h3>
+	<span>
+        <script>
+            document.write(`${ window.screen.availWidth } x ${ window.screen.availHeight } (${ window.screen.width } x ${ window.screen.height })`);
+        </script>
+    </span>
+	<br>
+
+	<h3>User Agent</h3>
+	<span>
+        <script>
+            document.write(window.navigator.userAgent);
+        </script>
+    </span>
+
+	<br>
+	<br>
+
+	<script src="sha256.min.js"></script>
+	<script type="text/javascript">
+		// https://privacycheck.sec.lrz.de/active/fp_gcr/fp_getclientrects.html
+		window._cf_chl_ctx = { chC: 0 };
+		window._cf_chl_ctx[window._cf_chl_ctx.chC] = { i: "TlNhsnWYuqQ=", h: "yes", tH: "", t: -(new Date).getTime() };
+
+		var v, c, d, e, f, g;
+		"", "SHIFTER", c = document.createElement("iframe"), c.height = 600, c.width = 700, document.body.appendChild(c), d = c.contentDocument || c.contentWindow.document, e = false, g = 10, window._cf_gcr = function(o, n, m, l, k, h, w) {
+			if("", f && clearTimeout(f), !e) e = true; else return;
+			for(h = ["x", "y", "width", "height", "top", "right", "bottom", "left"], k = "", n = 1; n < 11; m = d.getElementById("pr" + n), m.getClientRects && (l = m.getClientRects(), k += j(n, l)), n++) ;
+			if(k !== "") o = SHA256(k), document.getElementById("result").textContent = k, window._cf_chl_ctx[window._cf_chl_ctx.chC].fp = o, window._cf_chl_ctx[window._cf_chl_ctx.chC].rt = g; else
+			{
+				if(g--) return e = false, void (f = setTimeout(window._cf_gcr, 50));
+				window._cf_chl_ctx[window._cf_chl_ctx.chC].fp = "-", window._cf_chl_ctx[window._cf_chl_ctx.chC].rt = g;
+			}
+			setTimeout(function(y) {
+				"", window._cf_gcr = undefined;
+			}, 0);//, document.body.removeChild(c), BkqChZt();
+
+			function j(p, q, r, x)
+			{
+				r = ("", "");
+				try
+				{
+					if(q && q.length > 0)
+					{
+						r += p + "|";
+						for(var s in q[0])
+						{
+							h.indexOf(s) > -1 && (r += s + ":" + q[0][s]);
+						}
+					}
+				}
+				catch(t)
+				{
+				}
+				return r;
+			}
+		}, f = setTimeout(window._cf_gcr, 500), d.write(`<html><head><style>      #pr1 {       border: solid 2.715px;       border-color: green;       padding: 3.98px;       margin-left: 12.12px;     }         #pr2 {       border: solid 2px;       border-color: purple;              font-size: 30px;       margin-top: 200px;              -webkit-transform: skewY(23.1753218deg);       -moz-transform: skewY(23.1753218deg);       -ms-transform: skewY(23.1753218deg);       -o-transform: skewY(23.1753218deg);       transform: skewY(23.1753218deg);     }         #pr3 {       border: solid 2.89px;       border-color: orange;       font-size: 45px;       transform: scale(100000000000000000000009999999999999.99, 1.89);       margin-top: 50px;     }         #pr4 {       border: solid 2px;       border-color: silver;              transform: matrix(1.11, 2.0001, -1.0001, 1.009, 150, 94.4);       -webkit-transform: matrix(0.95559, 2.13329, -0.9842, 0.98423, 150, 95);       -moz-transform: matrix(0.66371, 1.94587, -0.6987, 0.98423, 150, 103.238);       -ms-transform: matrix(0.5478, 1.94587, -0.7383, 0.98423, 150, 100.569);       -o-transform: matrix(0.4623, 1.83523, -0.6734, 0.81231, 150, 99.324);                  position: absolute;       margin-top: 11.1331px;       margin-left: 12.1212px;       padding: 4.4545px;       left: 239.4141px;       top: 178.5050px;       }         #pr5 {                     border: solid 2pt;       border-color: red;       margin-left: 42.395pt;     }         caption {       border: solid 2px;       border-color: darkred;       font-size: 20.99px;       margin-left: 20.8px;     }         #pr6 {       border: solid 2px;       border-color: darkblue;              -webkit-transform: perspective(12890px) translateZ(101.5px);       -moz-transform: perspective(12890px) translateZ(101.5px);       -ms-transform: perspective(12890px) translateZ(101.5px);       -o-transform: perspective(12890px) translateZ(101.5px);       transform: perspective(12890px) translateZ(101.5px);       padding: 12px;     }         #pr7 {       position: absolute;       margin-top: -350.552px;       margin-left: 0.9099rem;       border: solid 2px;       border-color: burlywood;     }         #pr8 {       position: absolute;       margin-top: -150.552px;       margin-left: 15.9099rem;       border: solid 2px;       border-color: sandybrown;     }         #pr9 {       position: absolute;       margin-top: -110.552px;       margin-left: 15.9099rem;       border: solid 2px;       border-color: orchid;     }         #pr10 {       position: absolute;       margin-top: -315.552px;       margin-left: 15.9099rem;       border: solid 2px;       border-color: turquoise;     }     </style></head><body>       <div id="pr1">Ssss tttt</div>       <div id="pr2">TTTT tttt</div>       <div id="pr3">WW&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ssss tttt</div>       <div id="pr4">vvvv sssss ttttt tttt</div>       <table id="pr5">         <caption>ttttt cccc tttt</caption>         <thead>         <tr>             <th>tttt hhhh</th>         </tr>         </thead>         <tbody>         <tr><td>tttt bbbb</td>         </tr>         </tbody>     </table>     <div id="pr6">ttttt pppp tttt tttt</div>     <div id="pr7">         <select>         <option>sss ooo</option>         </select>     </div>     <div id="pr8">         <details>         <summary>dddd ssss</summary>         </details>     </div>     <div id="pr9">         <progress value="49" max="100"></progress>     </div>     <div id="pr10">         <button type="button"></button>     </div>     \x3Cscript\x3eparent._cf_gcr();\x3C/script\x3e     </body></html>`), d.close();
+
+		window._cf_chl_ctx[window._cf_chl_ctx.chC].t += (new Date).getTime();
+		window._cf_chl_ctx.chC++;
+		// console.log(window._cf_chl_ctx[0].fp);
+		document.getElementById("result_hash").textContent = window._cf_chl_ctx[0].fp;
+		document.getElementById("context").textContent = JSON.stringify(window._cf_chl_ctx);
+	</script>
+</body>
+</html>
