@@ -1,0 +1,600 @@
+<!--https://storage.googleapis.com/pub-tools-public-publication-data/pdf/45581.pdf-->
+<!--https://github.com/antoinevastel/picasso-like-canvas-fingerprinting-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>fp</title>
+	<style>
+        /*body {
+            accent-color: #5e9eff;
+            background-color: #1b1b1b;
+            color: #fff;
+        }*/
+	</style>
+	<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-stone-900 text-white m-2">
+	<div class="grid grid-cols-2 gap-2">
+		<div class="text-center bg-white text-black rounded-lg p-2" id="canvasgenerated"></div>
+		<div class="text-center bg-white text-black rounded-lg p-2" id="canvasgenerated_noise"></div>
+		<!--		<div class="text-center bg-white text-black rounded-lg p-2 col-span-2">-->
+		<!--			<p>Canvas difference (<code>red = diff pixels</code>)</p>-->
+		<!--			<canvas class="border border-1 border-sky-500 mx-auto" width="300" height="300" id="canvas_diff"></canvas>-->
+		<!--		</div>-->
+	</div>
+
+	<form style="display: none">
+		<h2>Canvas parameters</h2>
+		<div class="form-group row">
+			<label for="numshapes" class="col-sm-2 col-form-label">Number of rounds</label>
+			<div class="col-sm-2">
+				<input type="number" class="form-control" id="numshapes" value="5" min="1"/>
+			</div>
+
+			<label for="seed" class="col-sm-2 col-form-label">Seed</label>
+			<div class="col-sm-2">
+				<input type="number" class="form-control" id="seed" value="42" min="1"/>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="widtharea" class="col-sm-2 col-form-label">Canvas width</label>
+			<div class="col-sm-2">
+				<input type="number" class="form-control" id="widtharea" value="300" min="1"/>
+			</div>
+
+			<label for="heightarea" class="col-sm-2 col-form-label">Canvas height</label>
+			<div class="col-sm-2">
+				<input type="number" class="form-control" id="heightarea" value="300" min="1"/>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="offsetParameter" class="col-sm-2 col-form-label">Offset</label>
+			<div class="col-sm-2">
+				<input type="number" class="form-control" id="offsetParameter" value="2001000001" min="1"
+					   step="10000"/>
+			</div>
+
+			<label for="multiplier" class="col-sm-2 col-form-label">Multiplier</label>
+			<div class="col-sm-2">
+				<input type="number" class="form-control" id="multiplier" value="15000" min="1" step="100"/>
+			</div>
+		</div>
+
+		<div class="form-group row">
+			<label for="fontSizeFactor" class="col-sm-2 col-form-label">Font size scale factor</label>
+			<div class="col-sm-2">
+				<input type="number" class="form-control" id="fontSizeFactor" step="0.1" value="1.5" min="0.1"/>
+			</div>
+
+			<label for="maxShadowBlur" class="col-sm-2 col-form-label">Max shadow blur</label>
+			<div class="col-sm-2">
+				<input type="number" class="form-control" id="maxShadowBlur" step="1" value="50" min="1"/>
+			</div>
+		</div>
+
+		<button id="canvasbtn" type="submit" class="btn btn-primary mb-2">Generate canvas</button>
+	</form>
+
+	<script type="text/javascript">
+		function x64Add(m, n)
+		{
+			m = [m[0] >>> 16, m[0] & 0xffff, m[1] >>> 16, m[1] & 0xffff];
+			n = [n[0] >>> 16, n[0] & 0xffff, n[1] >>> 16, n[1] & 0xffff];
+			var o = [0, 0, 0, 0];
+			o[3] += m[3] + n[3];
+			o[2] += o[3] >>> 16;
+			o[3] &= 0xffff;
+			o[2] += m[2] + n[2];
+			o[1] += o[2] >>> 16;
+			o[2] &= 0xffff;
+			o[1] += m[1] + n[1];
+			o[0] += o[1] >>> 16;
+			o[1] &= 0xffff;
+			o[0] += m[0] + n[0];
+			o[0] &= 0xffff;
+			return [(o[0] << 16) | o[1], (o[2] << 16) | o[3]];
+		}
+
+
+		function x64Multiply(m, n)
+		{
+			m = [m[0] >>> 16, m[0] & 0xffff, m[1] >>> 16, m[1] & 0xffff];
+			n = [n[0] >>> 16, n[0] & 0xffff, n[1] >>> 16, n[1] & 0xffff];
+			var o = [0, 0, 0, 0];
+			o[3] += m[3] * n[3];
+			o[2] += o[3] >>> 16;
+			o[3] &= 0xffff;
+			o[2] += m[2] * n[3];
+			o[1] += o[2] >>> 16;
+			o[2] &= 0xffff;
+			o[2] += m[3] * n[2];
+			o[1] += o[2] >>> 16;
+			o[2] &= 0xffff;
+			o[1] += m[1] * n[3];
+			o[0] += o[1] >>> 16;
+			o[1] &= 0xffff;
+			o[1] += m[2] * n[2];
+			o[0] += o[1] >>> 16;
+			o[1] &= 0xffff;
+			o[1] += m[3] * n[1];
+			o[0] += o[1] >>> 16;
+			o[1] &= 0xffff;
+			o[0] += (m[0] * n[3]) + (m[1] * n[2]) + (m[2] * n[1]) + (m[3] * n[0]);
+			o[0] &= 0xffff;
+			return [(o[0] << 16) | o[1], (o[2] << 16) | o[3]];
+		}
+
+		function x64Rotl(m, n)
+		{
+			n %= 64;
+			if(n === 32)
+			{
+				return [m[1], m[0]]
+			}
+			else if(n < 32)
+			{
+				return [(m[0] << n) | (m[1] >>> (32 - n)), (m[1] << n) | (m[0] >>> (32 - n))]
+			}
+			else
+			{
+				n -= 32;
+				return [(m[1] << n) | (m[0] >>> (32 - n)), (m[0] << n) | (m[1] >>> (32 - n))]
+			}
+		}
+
+		function x64LeftShift(m, n)
+		{
+			n %= 64;
+			if(n === 0)
+			{
+				return m
+			}
+			else if(n < 32)
+			{
+				return [(m[0] << n) | (m[1] >>> (32 - n)), m[1] << n]
+			}
+			else
+			{
+				return [m[1] << (n - 32), 0]
+			}
+		}
+
+		function x64Xor(m, n)
+		{
+			return [m[0] ^ n[0], m[1] ^ n[1]];
+		}
+
+		function x64Fmix(h)
+		{
+			h = x64Xor(h, [0, h[0] >>> 1]);
+			h = x64Multiply(h, [0xff51afd7, 0xed558ccd]);
+			h = x64Xor(h, [0, h[0] >>> 1]);
+			h = x64Multiply(h, [0xc4ceb9fe, 0x1a85ec53]);
+			h = x64Xor(h, [0, h[0] >>> 1]);
+			return h
+		}
+
+		function x64hash128(key, seed)
+		{
+			key = key || '';
+			seed = seed || 0;
+			var remainder = key.length % 16;
+			var bytes = key.length - remainder;
+			var h1 = [0, seed];
+			var h2 = [0, seed];
+			var k1 = [0, 0];
+			var k2 = [0, 0];
+			var c1 = [0x87c37b91, 0x114253d5];
+			var c2 = [0x4cf5ad43, 0x2745937f];
+			for(var i = 0; i < bytes; i = i + 16)
+			{
+				k1 = [((key.charCodeAt(i + 4) & 0xff)) | ((key.charCodeAt(i + 5) & 0xff) << 8) | ((key.charCodeAt(i + 6) & 0xff) << 16) | ((key.charCodeAt(i + 7) & 0xff) << 24), ((key.charCodeAt(i) & 0xff)) | ((key.charCodeAt(i + 1) & 0xff) << 8) | ((key.charCodeAt(i + 2) & 0xff) << 16) | ((key.charCodeAt(i + 3) & 0xff) << 24)];
+				k2 = [((key.charCodeAt(i + 12) & 0xff)) | ((key.charCodeAt(i + 13) & 0xff) << 8) | ((key.charCodeAt(i + 14) & 0xff) << 16) | ((key.charCodeAt(i + 15) & 0xff) << 24), ((key.charCodeAt(i + 8) & 0xff)) | ((key.charCodeAt(i + 9) & 0xff) << 8) | ((key.charCodeAt(i + 10) & 0xff) << 16) | ((key.charCodeAt(i + 11) & 0xff) << 24)];
+				k1 = x64Multiply(k1, c1);
+				k1 = x64Rotl(k1, 31);
+				k1 = x64Multiply(k1, c2);
+				h1 = x64Xor(h1, k1);
+				h1 = x64Rotl(h1, 27);
+				h1 = x64Add(h1, h2);
+				h1 = x64Add(x64Multiply(h1, [0, 5]), [0, 0x52dce729]);
+				k2 = x64Multiply(k2, c2);
+				k2 = x64Rotl(k2, 33);
+				k2 = x64Multiply(k2, c1);
+				h2 = x64Xor(h2, k2);
+				h2 = x64Rotl(h2, 31);
+				h2 = x64Add(h2, h1);
+				h2 = x64Add(x64Multiply(h2, [0, 5]), [0, 0x38495ab5]);
+			}
+			k1 = [0, 0];
+			k2 = [0, 0];
+			switch(remainder)
+			{
+				case 15:
+					k2 = x64Xor(k2, x64LeftShift([0, key.charCodeAt(i + 14)], 48));
+				case 14:
+					k2 = x64Xor(k2, x64LeftShift([0, key.charCodeAt(i + 13)], 40));
+				case 13:
+					k2 = x64Xor(k2, x64LeftShift([0, key.charCodeAt(i + 12)], 32));
+				case 12:
+					k2 = x64Xor(k2, x64LeftShift([0, key.charCodeAt(i + 11)], 24));
+				case 11:
+					k2 = x64Xor(k2, x64LeftShift([0, key.charCodeAt(i + 10)], 16));
+				case 10:
+					k2 = x64Xor(k2, x64LeftShift([0, key.charCodeAt(i + 9)], 8));
+				case 9:
+					k2 = x64Xor(k2, [0, key.charCodeAt(i + 8)]);
+					k2 = x64Multiply(k2, c2);
+					k2 = x64Rotl(k2, 33);
+					k2 = x64Multiply(k2, c1);
+					h2 = x64Xor(h2, k2);
+				case 8:
+					k1 = x64Xor(k1, x64LeftShift([0, key.charCodeAt(i + 7)], 56));
+				case 7:
+					k1 = x64Xor(k1, x64LeftShift([0, key.charCodeAt(i + 6)], 48));
+				case 6:
+					k1 = x64Xor(k1, x64LeftShift([0, key.charCodeAt(i + 5)], 40));
+				case 5:
+					k1 = x64Xor(k1, x64LeftShift([0, key.charCodeAt(i + 4)], 32));
+				case 4:
+					k1 = x64Xor(k1, x64LeftShift([0, key.charCodeAt(i + 3)], 24));
+				case 3:
+					k1 = x64Xor(k1, x64LeftShift([0, key.charCodeAt(i + 2)], 16));
+				case 2:
+					k1 = x64Xor(k1, x64LeftShift([0, key.charCodeAt(i + 1)], 8));
+				case 1:
+					k1 = x64Xor(k1, [0, key.charCodeAt(i)]);
+					k1 = x64Multiply(k1, c1);
+					k1 = x64Rotl(k1, 31);
+					k1 = x64Multiply(k1, c2);
+					h1 = x64Xor(h1, k1);
+			}
+			h1 = x64Xor(h1, [0, key.length]);
+			h2 = x64Xor(h2, [0, key.length]);
+			h1 = x64Add(h1, h2);
+			h2 = x64Add(h2, h1);
+			h1 = x64Fmix(h1);
+			h2 = x64Fmix(h2);
+			h1 = x64Add(h1, h2);
+			h2 = x64Add(h2, h1);
+			return ('00000000' + (h1[0] >>> 0).toString(16)).slice(-8) + ('00000000' + (h1[1] >>> 0).toString(16)).slice(-8) + ('00000000' + (h2[0] >>> 0).toString(16)).slice(-8) + ('00000000' + (h2[1] >>> 0).toString(16)).slice(-8)
+		}
+
+		//
+
+
+		function picassoCanvas(roundNumber, seed, params)
+		{
+			const { area, offsetParameter, multiplier, fontSizeFactor, maxShadowBlur } = params;
+
+			class Prng
+			{
+				constructor(seed)
+				{
+					this.currentNumber = seed % offsetParameter;
+					if(this.currentNumber <= 0)
+					{
+						this.currentNumber += offsetParameter
+					}
+				}
+
+				getNext()
+				{
+					this.currentNumber = multiplier * this.currentNumber % offsetParameter;
+					return this.currentNumber;
+				}
+			}
+
+			function adaptRandomNumberToContext(randomNumber, maxBound, floatAllowed)
+			{
+				randomNumber = (randomNumber - 1) / offsetParameter;
+				if(floatAllowed)
+				{
+					return randomNumber * maxBound;
+				}
+
+				return Math.floor(randomNumber * maxBound);
+			}
+
+			function addRandomCanvasGradient(prng, context, area)
+			{
+				const canvasGradient = context.createRadialGradient(
+					adaptRandomNumberToContext(prng.getNext(), area.width),
+					adaptRandomNumberToContext(prng.getNext(), area.height),
+					adaptRandomNumberToContext(prng.getNext(), area.width),
+					adaptRandomNumberToContext(prng.getNext(), area.width),
+					adaptRandomNumberToContext(prng.getNext(), area.height),
+					adaptRandomNumberToContext(prng.getNext(), area.width)
+				);
+				canvasGradient.addColorStop(0, colors[adaptRandomNumberToContext(prng.getNext(), colors.length)]);
+				canvasGradient.addColorStop(1, colors[adaptRandomNumberToContext(prng.getNext(), colors.length)]);
+				context.fillStyle = canvasGradient
+			}
+
+			function generateRandomWord(prng, wordLength)
+			{
+				const minAscii = 65;
+				const maxAscii = 126;
+				const wordGenerated = [];
+				for(let i = 0; i < wordLength; i++)
+				{
+					const asciiCode = minAscii + (prng.getNext() % (maxAscii - minAscii));
+					wordGenerated.push(String.fromCharCode(asciiCode));
+				}
+
+				return wordGenerated.join('');
+			}
+
+			if(!window.CanvasRenderingContext2D)
+			{
+				return 'unknown';
+			}
+
+			const colors = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6',
+				'#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
+				'#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A',
+				'#FF99E6', '#CCFF1A', '#FF1A66', '#E6331A', '#33FFCC',
+				'#66994D', '#B366CC', '#4D8000', '#B33300', '#CC80CC',
+				'#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399',
+				'#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680',
+				'#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933',
+				'#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3',
+				'#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'];
+
+			const primitives = [
+				function arc(prng, context, area) {
+					context.beginPath();
+					context.arc(
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height),
+						adaptRandomNumberToContext(prng.getNext(), Math.min(area.width, area.height)),
+						adaptRandomNumberToContext(prng.getNext(), 2 * Math.PI, true),
+						adaptRandomNumberToContext(prng.getNext(), 2 * Math.PI, true)
+					);
+					context.stroke()
+				},
+				function text(prng, context, area) {
+					const wordLength = Math.max(1, adaptRandomNumberToContext(prng.getNext(), 5));
+					const textToStroke = generateRandomWord(prng, wordLength);
+					context.font = `${ area.height / fontSizeFactor }px aafakefontaa`;
+
+					context.strokeText(
+						textToStroke,
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height),
+						adaptRandomNumberToContext(prng.getNext(), area.width)
+					)
+				},
+				function bezierCurve(prng, context, area) {
+					context.beginPath();
+					context.moveTo(
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height)
+					);
+					context.bezierCurveTo(
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height),
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height),
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height)
+					);
+					context.stroke()
+				},
+				function quadraticCurve(prng, context, area) {
+					context.beginPath();
+					context.moveTo(
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height)
+					);
+					context.quadraticCurveTo(
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height),
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height)
+					);
+					context.stroke()
+				},
+				function ellipse(prng, context, area) {
+					context.beginPath();
+					context.ellipse(
+						adaptRandomNumberToContext(prng.getNext(), area.width),
+						adaptRandomNumberToContext(prng.getNext(), area.height),
+						adaptRandomNumberToContext(prng.getNext(), Math.floor(area.width / 2)),
+						adaptRandomNumberToContext(prng.getNext(), Math.floor(area.height / 2)),
+						adaptRandomNumberToContext(prng.getNext(), 2 * Math.PI, true),
+						adaptRandomNumberToContext(prng.getNext(), 2 * Math.PI, true),
+						adaptRandomNumberToContext(prng.getNext(), 2 * Math.PI, true)
+					);
+
+					context.stroke()
+				}
+			];
+
+			try
+			{
+				const prng = new Prng(seed);
+				const canvasElt = document.createElement("canvas");
+				canvasElt.className = "border border-1 border-sky-500 mx-auto";
+				canvasElt.width = area.width;
+				canvasElt.height = area.height;
+				// canvasElt.style.display = "none";
+				const context = canvasElt.getContext("2d");
+
+				// const pixels = context.getImageData(0, 0, canvasElt.width, canvasElt.height);
+
+				for(let i = 0; i < roundNumber; i++)
+				{
+					addRandomCanvasGradient(prng, context, area);
+					context.shadowBlur = adaptRandomNumberToContext(prng.getNext(), maxShadowBlur);
+					context.shadowColor = colors[adaptRandomNumberToContext(prng.getNext(), colors.length)];
+					const randomPrimitive = primitives[adaptRandomNumberToContext(prng.getNext(), primitives.length)];
+					randomPrimitive(prng, context, area);
+					context.fill()
+				}
+
+				return canvasElt;
+				// return canvasElt.toDataURL();
+			}
+			catch(e)
+			{
+			}
+		}
+	</script>
+
+	<script type="text/javascript">
+		(async() => {
+			const params = {
+				area: {
+					width: parseInt(document.getElementById('widtharea').value),
+					height: parseInt(document.getElementById('heightarea').value),
+				},
+				offsetParameter: parseInt(document.getElementById('offsetParameter').value),
+				fontSizeFactor: parseFloat(document.getElementById('fontSizeFactor').value),
+				multiplier: parseInt(document.getElementById('multiplier').value),
+				maxShadowBlur: parseInt(document.getElementById('maxShadowBlur').value),
+			};
+			const numShapes = parseInt(document.getElementById('numshapes').value);
+			let initialSeed = parseInt(document.getElementById('seed').value);
+			if(typeof initialSeed === 'undefined')
+			{
+				initialSeed = Math.floor(100 * Math.random());
+			}
+
+			const start1 = performance.now();
+			const canvasValue = picassoCanvas(numShapes, initialSeed, params);
+			const end1 = performance.now();
+
+			document.getElementById("canvasgenerated").innerHTML = `<p>Canvas with ${ numShapes } primitives, generated in ${ ((end1 - start1) / 1000).toFixed(6) } seconds</p><p>Original Hash: ${ x64hash128(canvasValue.toDataURL(), initialSeed) }</p>`;
+			document.getElementById("canvasgenerated").appendChild(canvasValue);
+
+
+			const start2 = performance.now();
+			const canvasValueNoise = picassoCanvas(numShapes, initialSeed, params);
+			const end2 = performance.now();
+			const canvasValueNoiseContext = canvasValueNoise.getContext("2d");
+
+			const domain = 'example.com';
+			// const textAsBuffer = new TextEncoder().encode(domain);
+			// const hashBuffer = await window.crypto.subtle.digest('SHA-256', textAsBuffer);
+			// const domainKey = Array.from(new Uint8Array(hashBuffer));
+			// const hashBuffer = await hmac(domain, 'secret');
+			const hashBuffer = await hmac(domain, 'secret' + Math.random());
+			const domainKey = Array.from(new Uint8Array(hashBuffer));
+			console.log('domainKey', domainKey);
+
+			const pixels = canvasValueNoiseContext.getImageData(0, 0, canvasValueNoise.width, canvasValueNoise.height);
+			const pixelCount = canvasValueNoise.width * canvasValueNoise.height;
+			// choose which channel (R, G, or B) to perturb
+			const firstByte = domainKey[0];
+			const channel = firstByte % 3;
+			// initial seed to find first pixel to perturb
+			// let v = domainKey[0];
+			let v = new DataView(hashBuffer).getBigUint64(0, false);
+			// let v = 11158016182927262525n;
+			const zero = 0;
+			let pixelIndex;
+
+			console.log(`Perturbing ${ channel === 0 ? 'red' : channel === 1 ? 'green' : channel === 2 ? 'blue' : channel === 3 ? 'alpha' : 'error' } (${ channel }) channel`);
+			console.time('perturbing');
+
+			const changed = [];
+			// iterate through 32-byte domain key and use each bit to determine how to perturb the current pixel
+			for(let i = 0; i < 32; i++)
+			{
+				let bit = domainKey[i]; // idk domain_key_
+				for(let j = 8; j >= 0; j--)
+				{
+					// pixelIndex = 4 * (v % pixelCount) + channel;
+					pixelIndex = BigInt(4) * (BigInt(v) % BigInt(pixelCount)) + BigInt(channel);
+					changed.push(pixelIndex);
+					// console.log(pixelIndex);
+					// console.log(pixelIndex, v, pixelCount, channel);
+					console.log(`${ i }:${ j } @${ pixelIndex } = ${ pixels.data[pixelIndex] ^ (bit & 0x1) }`);
+					pixels.data[pixelIndex] = pixels.data[pixelIndex] ^ (bit & 0x1);
+					bit = bit >> 1;
+					// find next pixel to perturb
+					// v = ((v >> 1) | (((v << 62) ^ (v << 61)) & (~(~zero << 63) << 62)));
+					v = ((v >> BigInt(1)) | (((v << BigInt(62)) ^ (v << BigInt(61))) & (~(~BigInt(zero) << BigInt(63)) << BigInt(62))));
+				}
+			}
+			console.timeEnd('perturbing');
+
+			// const getImageData = CanvasRenderingContext2D.prototype.getImageData;
+			// const pixels = getImageData.apply(canvasValueNoiseContext, [0, 0, canvasValueNoise.width, canvasValueNoise.height]);
+			// const count = 4 * canvasValueNoise.width * canvasValueNoise.height;
+			// for(let i = 0; i < pixelCount * 4; i++)
+			// {
+			// 	pixels.data[i] = v % 256;
+			// 	v = ((v >> 1) | (((v << 62) ^ (v << 61)) & (~(~zero << 63) << 62)));
+			// }
+
+			canvasValueNoiseContext.putImageData(pixels, 0, 0);
+			console.log("DONE");
+
+			document.getElementById("canvasgenerated_noise").innerHTML = `<p>Canvas with ${ numShapes } primitives, generated in ${ ((end2 - start2) / 1000).toFixed(6) } seconds</p><p>Noised Hash: ${ x64hash128(canvasValueNoise.toDataURL(), initialSeed) }</p>`;
+			document.getElementById("canvasgenerated_noise").appendChild(canvasValueNoise);
+
+			// const diffConetxt = document.getElementById('canvas_diff').getContext('2d');
+			// const imageData = diffConetxt.createImageData(params.area.width, params.area.height);
+			// for(let i = 0; i < imageData.data.length; i += 4)
+			// {
+			// 	if(
+			// 		changed.includes(BigInt(i + 0)) ||
+			// 		changed.includes(BigInt(i + 1)) ||
+			// 		changed.includes(BigInt(i + 2)) ||
+			// 		changed.includes(BigInt(i + 3))
+			// 	)
+			// 	{
+			// 		imageData.data[i + 0] = 255;
+			// 		imageData.data[i + 1] = 0;
+			// 		imageData.data[i + 2] = 0;
+			// 		imageData.data[i + 3] = 255;
+			// 	}
+			// 	else
+			// 	{
+			// 		imageData.data[i + 0] = 255;
+			// 		imageData.data[i + 1] = 255;
+			// 		imageData.data[i + 2] = 255;
+			// 		imageData.data[i + 3] = 255;
+			// 	}
+			// }
+			// diffConetxt.putImageData(imageData, 0, 0);
+
+
+			// magick compare -verbose real.png shield.png diff.png
+			// magick compare -channel red/green/blue -verbose real.png perturb.png diff.png
+
+			// uint8_t domain_key_[32] = {163, 121, 166, 246, 238, 175, 185, 165, 94, 55, 140, 17, 128, 52, 226, 117, 30, 104, 47, 171, 159, 45, 48, 171, 19, 210, 18, 85, 134, 206, 25, 71};
+			// const uint8_t* first_byte = reinterpret_cast<const uint8_t*>(domain_key_);
+			// cout << &first_byte << endl;
+			//
+			// uint64_t v = *reinterpret_cast<uint64_t*>(domain_key_);
+			// cout << v << endl;
+		})();
+
+		async function hmac(message, secret)
+		{
+			const enc = new TextEncoder("utf-8");
+			const algorithm = { name: "HMAC", hash: "SHA-256" };
+			const key = await crypto.subtle.importKey(
+				"raw",
+				enc.encode(secret),
+				algorithm,
+				false, ["sign", "verify"]
+			);
+			const hashBuffer = await crypto.subtle.sign(
+				algorithm.name,
+				key,
+				enc.encode(message)
+			);
+			return hashBuffer;
+
+			// const hashArray = Array.from(new Uint8Array(hashBuffer));
+			// return hashArray.map(
+			// 	b => b.toString(16).padStart(2, '0')
+			// ).join('');
+		}
+	</script>
+</body>
+</html>
